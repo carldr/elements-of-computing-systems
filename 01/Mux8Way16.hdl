@@ -12,11 +12,22 @@
  */
 
 CHIP Mux8Way16 {
-    IN a[16], b[16], c[16], d[16],
-       e[16], f[16], g[16], h[16],
-       sel[3];
-    OUT out[16];
+	IN a[16], b[16], c[16], d[16],
+	   e[16], f[16], g[16], h[16],
+	   sel[3];
+	OUT out[16];
 
-    PARTS:
-    // Put your code here:
+	PARTS:
+//  TODO: This ought to work but doesn't, why?
+//	Mux16(a=a,b=b,sel=sel[0],out=i); // Select between a and b using LSB of sel
+//	Mux16(a=c,b=d,sel=sel[0],out=j); // Select between c and d using LSB of sel
+//	Mux16(a=e,b=f,sel=sel[0],out=k); // Select between e and f using LSB of sel
+//	Mux16(a=g,b=h,sel=sel[0],out=l); // Select between g and h using LSB of sel
+//	Mux4Way16(a=i,b=j,c=k,d=l,sel=sel[1..2]); // Select between these 4 muxes
+	
+	
+	Mux4Way16(a=a,b=b,c=c,d=d,sel=sel[0..1],out=i); // Select between the first four buses using the 2 LSBs of sel
+	Mux4Way16(a=e,b=f,c=g,d=h,sel=sel[0..1],out=j);
+	
+	Mux16(a=i,b=j,sel=sel[2],out=out);
 }
