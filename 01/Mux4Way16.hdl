@@ -16,4 +16,8 @@ CHIP Mux4Way16 {
 	OUT out[16];
 
 	PARTS:
+	Mux16(a=a,b=b,sel=sel[0],out=i); // Select between a and b using LSB of sel
+	Mux16(a=c,b=d,sel=sel[0],out=j); // Select between c and d using LSB of sel
+	
+	Mux16(a=i,b=j,sel=sel[1],out=out); // Select between the output of the two previous muxes according to MSB of sel
 }
