@@ -28,22 +28,55 @@
 // if (out==0) set zr = 1
 // if (out<0) set ng = 1
 
-  
 CHIP ALU {
-    IN  
-        x[16], y[16],  // 16-bit inputs        
-        zx, // zero the x input?
-        nx, // negate the x input?
-        zy, // zero the y input?
-        ny, // negate the y input?
-        f,  // compute  out = x + y (if 1) or out = x & y (if 0)
-        no; // negate the out output?
+	IN  
+	    x[16], y[16],  // 16-bit inputs        
+	    zx, // zero the x input?
+	    nx, // negate the x input?
+	    zy, // zero the y input?
+	    ny, // negate the y input?
+	    f,  // compute  out = x + y (if 1) or out = x & y (if 0)
+	    no; // negate the out output?
 
-    OUT 
-        out[16], // 16-bit output
-        zr, // 1 if (out==0), 0 otherwise
-        ng; // 1 if (out<0),  0 otherwise
+	OUT 
+	    out[16], // 16-bit output
+	    zr, // 1 if (out==0), 0 otherwise
+	    ng; // 1 if (out<0),  0 otherwise
 
-    PARTS:
-   // Put you code here:
+	PARTS:
+	//  Select whether we should use x or 0, or y or 0, depending on zx and zy.
+	Mux16(a=x,b[0..15]=false,sel=zx,out=zxmux);
+	Mux16(a=y,b[0..15]=false,sel=zy,out=zymux);
+	
+	//  Work out the negative of the x and y values we're using
+	Not16(in=zxmux,out=notzxmux);
+	Not16(in=zymux,out=notzymux);
+	
+	//  Select whether to use the x/y value, or the not x/y value depending on nz and ny.
+	Mux16(a=zxmux,b=notzxmux,sel=nx,out=nxmux);
+	Mux16(a=zymux,b=notzymux,sel=ny,out=nymux);
+	
+	//  Work out x&y and x+y
+	Add16(a=nxmux,b=nymux,out=sumnxny);
+	And16(a=nxmux,b=nymux,out=andnxny);
+	
+	//  Select whether to use x&y or x+y depending on f.
+	Mux16(a=andnxny,b=sumnxny,sel=f,out=afterfmux);
+	
+	//  Work out the negative of the value we have selected.
+	Not16(in=afterfmux,out=notafterfmux);
+	
+	//  Select whether to invert the value or not, depending on no.
+	Mux16(a=afterfmux,b=notafterfmux,sel=no,out=afternomux);
+	
+	//  Send the value to out.
+	And16(a=afternomux,b=afternomux,out=out);
+
+	//  Work out ng
+	//  We can't use a sub-bus of an internal node in this way, so we have to use an external chip.
+	IsNegative(in=afternomux,out=ng);
+
+	//  Work out zr
+	//  We can't use a sub-bus of an internal node in this way, so we have to use an external chip.
+	IsZero(in=afternomux,out=zr);
 }

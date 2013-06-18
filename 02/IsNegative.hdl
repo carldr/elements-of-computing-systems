@@ -1,0 +1,7 @@
+CHIP IsNegative {
+	IN in[16]; // 16-bit input
+	OUT out;   // 1-bit output
+
+	PARTS:
+	And(a=in[15],b=true,out=out);
+}
